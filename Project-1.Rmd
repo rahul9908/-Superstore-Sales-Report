@@ -1,0 +1,89 @@
+---
+title: "Project-1"
+author: "Rahul"
+date: "2024-12-02"
+output: html_document
+---
+```{r}
+
+library(dplyr)
+library(ggplot2)
+
+
+
+data <- read.csv("SuperStore Sales DataSet.csv")
+
+# Remove unnecessary columns 'ind1' and 'ind2'
+data <- data %>% select(-ind1, -ind2)
+
+# Replace missing values in the 'Returns' column with 0
+data$Returns[is.na(data$Returns)] <- 0
+
+# Rename the column 'Row ID+O6G3A1:R6' to 'row ID'
+names(data)[names(data) == "Row ID+O6G3A1:R6"] <- "row ID"
+
+# Display summary statistics for the dataset
+summary(data)
+
+# Display the structure of the cleaned dataset
+str(data)
+
+```
+
+```{r}
+
+
+
+aggregated_data <- data %>%
+  filter(Category %in% c("Technology", "Office Supplies", "Furniture")) %>%
+  group_by(Region, Category) %>%
+  summarise(Total_Profit = sum(Profit, na.rm = TRUE)) %>%
+  ungroup()
+
+
+aggregated_data$Category <- factor(
+  aggregated_data$Category,
+  levels = c("Technology", "Office Supplies", "Furniture")
+)
+
+
+category_colors <- c(
+  "Technology" = "#66c2a5",  
+  "Office Supplies" = "#fc8d62",  
+  "Furniture" = "#8da0cb"  
+)
+
+# Create the bar graph
+ggplot(aggregated_data, aes(x = Region, y = Total_Profit, fill = Category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_hline(yintercept = 0, color = "black", linetype = "dashed", size = 0.8) +
+  scale_fill_manual(values = category_colors) +  # Apply custom colors
+  scale_y_continuous(
+    breaks = seq(
+      round(min(aggregated_data$Total_Profit, na.rm = TRUE), -2),
+      round(max(aggregated_data$Total_Profit, na.rm = TRUE), -2),
+      by = 5000
+    ),
+    labels = scales::comma
+  ) +
+  labs(
+    title = "Profits and Losses By Region And Category (2019)",
+    
+    x = "Region",
+    y = "Profit",
+    fill = "Category"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 9),
+    legend.position = "top",  
+    legend.justification = "center"  
+  )
+
+```
+
